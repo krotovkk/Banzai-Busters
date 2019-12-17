@@ -25,13 +25,19 @@ const defineLuckyLevel = () => {
   return 0;
 }
 
+
+
 const boosterPackOpen = (rarenessType: rareness_type) => {
   const things: IThing[] = [];
+  const possibleThingTypes = THING_TYPES.concat(THING_TYPES);
   const rarenessIndex:number = RARENESS_TYPES.indexOf(rarenessType);
 
   for( let i = 1; i <= PACK_SIZE; i++){
     const raiseRareness:number = defineLuckyLevel();
     let newRarenessIndex:number = raiseRareness + rarenessIndex;
+
+    console.log(possibleThingTypes);
+    
 
     if (i%2 !== 0) {
       newRarenessIndex -= 1;
@@ -45,7 +51,8 @@ const boosterPackOpen = (rarenessType: rareness_type) => {
 
     const rareness: rareness_type = RARENESS_TYPES[newRarenessIndex]
     
-    const thingType: thing_type = THING_TYPES[getRandomInt(THING_TYPES_COUNT)]
+    const thingType: thing_type = possibleThingTypes[getRandomInt(possibleThingTypes.length)]
+    possibleThingTypes.splice(possibleThingTypes.indexOf(thingType, 0), 1);
 
     const thingTypeValues = thingsBase[thingType];
     const thingNamesCount:number = thingTypeValues[rareness].length
