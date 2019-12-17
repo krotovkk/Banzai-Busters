@@ -8,22 +8,38 @@ const RARENESS_TYPES_COUNT = RARENESS_TYPES.length;
 const THING_TYPES: thing_type[] = ['WEAPON', 'HELMET', 'ARMOR', 'SHIELD']
 const THING_TYPES_COUNT = THING_TYPES.length;
 
-type boosterpack_type = 'COMMON_PACK' | 'CONSISTENT_PACK'
+export type boosterpack_type = 'COMMON_PACK' | 'CONSISTENT_PACK' | 'FAIR_PACK'
 
-class BoosterPack {
-  private things: IThing[];
+export class BoosterPackContainer {
+  private things: string[];
   private rareness: rareness_type;
   private size: number;
-  private type: boosterpack_type;
   private availableThingTypes: thing_type[];
+  private rarenessLevel: number;
+  private xRarenessThings: string[];
+
+  public type: boosterpack_type;
 
   constructor(rareness: rareness_type, type: boosterpack_type) {
     this.rareness = rareness;
+    this.rarenessLevel = RARENESS_TYPES.indexOf(this.rareness);
     this.type = type;
     this.things = [];
     this.size = 5;
+
     if (this.type === 'CONSISTENT_PACK') {
       this.availableThingTypes = THING_TYPES.concat(THING_TYPES);
+    } else if (this.type === 'FAIR_PACK') {
+      this.getAllXRarenessThings();
+    }
+  }
+
+  private getAllXRarenessThings() {
+    if (!this.xRarenessThings) {
+      this.xRarenessThings = [];
+    }
+    for (let thingType in thingsBase){
+      this.xRarenessThings = this.xRarenessThings.concat(thingsBase[thingType][this.rareness]);
     }
   }
 
@@ -34,7 +50,8 @@ class BoosterPack {
     if (this.type === 'CONSISTENT_PACK') {
       const thingTypesCount: number = this.availableThingTypes.length;
 
-      thingType = this.availableThingTypes[getRandomInt(thingTypesCount)]
+      thingType = this.availableThingTypes[getRandomInt(thingTypesCount)];
+      this.availableThingTypes.splice(this.availableThingTypes.indexOf(thingType, 0), 1);
     } else {
       thingType = THING_TYPES[getRandomInt(THING_TYPES_COUNT)]
     }
@@ -78,29 +95,45 @@ class BoosterPack {
     return rarenessLevel;
   }
 
-  public open(): IThing[] {
-    const rarenessLevel: number = RARENESS_TYPES.indexOf(this.rareness);
+  private getNextXRarenessThing() {
+    let index = getRandomInt(this.xRarenessThings.length);
+    let nextThing = this.xRarenessThings[index];
+
+    this.xRarenessThings.splice(index, 1);
+    return nextThing
+  }
+
+  public open(fairOpen?: boolean): string[] {
     let currentThing: IThing;
 
     for (let i = 1; i <= this.size; i++) {
-      let currentRarenessLevel = rarenessLevel;
+      let currentRarenessLevel = this.rarenessLevel;
+      
+      if (this.type === 'FAIR_PACK' && fairOpen) {
+        this.things.push( this.getNextXRarenessThing() );
+        fairOpen = false;
+        continue;
+      }
 
       if (i % 2 !== 0) {
         currentRarenessLevel -= 1;
       }
 
       currentRarenessLevel = this.getNewRarenessLevel(currentRarenessLevel);
-
+    
       currentThing = this.getNewThing(currentRarenessLevel);
 
-      this.things.push(currentThing);
-      this.availableThingTypes.splice(this.availableThingTypes.indexOf(currentThing.thingType, 0), 1);
+      this.things.push(currentThing.name);
     }
 
     return this.things
   }
+
+  public getThings() {
+    return this.things;
+  }
 }
 
-const booster = new BoosterPack('LEGENDARY', 'CONSISTENT_PACK');
+// const booster = new BoosterPackContainer('LEGENDARY', 'FAIR_PACK');
 
-console.log(booster.open())
+// console.log(booster.open(true))
