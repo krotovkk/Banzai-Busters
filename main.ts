@@ -10,6 +10,8 @@ const RARENESS_TYPES_COUNT = RARENESS_TYPES.length;
 const THING_TYPES: thing_type[] = ['WEAPON', 'HELMET', 'ARMOR', 'SHIELD']
 const THING_TYPES_COUNT = THING_TYPES.length;
 
+type busterpack_type = 'COMMON_PACK' | 'CONSISTENT_PACK'
+
 const defineLuckyLevel = () => {
   const random  = Math.random();
 
@@ -24,10 +26,18 @@ const defineLuckyLevel = () => {
   return 0;
 }
 
-const getNewThing = (rarenessLevel: number):IThing => {
+const getNewThing = (rarenessLevel: number, availableThingTypes: thing_type[], busterType: busterpack_type):IThing => {
   const rareness: rareness_type = RARENESS_TYPES[rarenessLevel]
+  let thingType: thing_type;
+
+  if (busterType === 'CONSISTENT_PACK') {
+    const thingTypesCount: number = availableThingTypes.length;
+
+    thingType = availableThingTypes[getRandomInt(thingTypesCount)]
+  } else {
+    thingType = THING_TYPES[getRandomInt(THING_TYPES_COUNT)]
+  }
   
-  const thingType: thing_type = THING_TYPES[getRandomInt(THING_TYPES_COUNT)]
 
   const thingTypeValues = thingsBase[thingType];
   const thingNamesCount:number = thingTypeValues[rareness].length
@@ -53,9 +63,11 @@ const getNewRarenessLevel = (currentRarenessLevel: number):number => {
   return rarenessLevel;
 }
 
-const boosterPackOpen = (rarenessType: rareness_type) => {
+const boosterPackOpen = (rarenessType: rareness_type, busterType: busterpack_type) => {
   const things: IThing[] = [];
   const rarenessLevel:number = RARENESS_TYPES.indexOf(rarenessType);
+  const availableThingTypes:thing_type[] = THING_TYPES.concat(THING_TYPES);
+  let currentThing: IThing;
 
   for( let i = 1; i <= PACK_SIZE; i++){
     let currentRarenessLevel = rarenessLevel;
@@ -66,11 +78,13 @@ const boosterPackOpen = (rarenessType: rareness_type) => {
     
     currentRarenessLevel = getNewRarenessLevel(currentRarenessLevel);    
 
-    things.push( getNewThing(currentRarenessLevel) );
-    
+    currentThing = getNewThing(currentRarenessLevel, availableThingTypes, busterType);
+
+    things.push( currentThing );
+    availableThingTypes.splice(availableThingTypes.indexOf(currentThing.thingType, 0), 1);
   }
 
   return things;
 }
 
-console.log(boosterPackOpen('LEGENDARY'));
+console.log(boosterPackOpen('LEGENDARY', 'CONSISTENT_PACK'));
