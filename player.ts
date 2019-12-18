@@ -1,4 +1,4 @@
-import { BoosterPackContainer, boosterpack_type } from "./main";
+import { BoosterPackContainer, boosterpack_type } from "./boosterpack";
 import { rareness_type } from "./model/IThing";
 
 export class Player {
@@ -16,7 +16,7 @@ export class Player {
     for (let i = 0; i < count; i++) {
       
       let fairOpen = false;
-      if (this.boosterPackContainer.type === 'FAIR_PACK' && this.openedBoosters % 3 === 0) {
+      if (this.boosterPackContainer.type === 'FAIR_PACK' && this.openedBoosters % 3 === 0 && this.openedBoosters < 24) {
         fairOpen = true;
       }
       this.boosterPackContainer.open(fairOpen);
@@ -25,14 +25,16 @@ export class Player {
     this.inventory = this.boosterPackContainer.getThings()
   }
 
-  public getInventory() {
-    console.log(this.inventory);
-    
+  public getInventory() {    
     return this.inventory;
   }
 
-}
+  public setBoosterPackType(type:boosterpack_type) {
+    this.boosterPackContainer.setBoosterPackType(type);
+  }
 
-const player = new Player('RARE','FAIR_PACK');
-player.openBoosters(4);
-player.getInventory();
+  public clearInventory() {
+    this.inventory = [];
+    this.boosterPackContainer.clearThings()
+  }
+}
